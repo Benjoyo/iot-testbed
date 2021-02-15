@@ -29,7 +29,9 @@ if __name__=="__main__":
   # Kill serialdump
   pssh(hosts_path, 'if pgrep picocom; then killall -9 picocom; fi; if pgrep screen; then screen -X -S nrf52screen quit; fi; if pgrep screen; then killall -9 screen; fi; if pgrep contiki-timestamp; then killall -9 contiki-timestamp; fi;', "Stopping picocom, screen and contiki-timestamp")
   # pssh(hosts_path, 'if pgrep screen; then screen -X -S nrf52screen quit; fi', "Quitting screen")
-  #pssh(hosts_path, "killall -9 screen", "Killing screen")
+  
+  pssh(hosts_path, "if pgrep java; then killall -9 java; fi;", "Killing java")
+  os.system("if pgrep java; then killall -9 java; fi;")
 
   # Program the nodes with null firmware
   if pssh(hosts_path, "%s %s"%(os.path.join(REMOTE_JN_SCRIPTS_PATH, "install.sh"), REMOTE_NULL_FIRMWARE_PATH), "Uninstalling nrf52 firmware") != 0:
