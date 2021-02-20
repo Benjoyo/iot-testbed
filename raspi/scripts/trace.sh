@@ -4,4 +4,6 @@ sleep $2
 
 export PATH=$PATH:/home/user/scripts/nrf52/JLink_Linux_arm
 
-java -jar /home/user/tracing/client.jar -n $HOSTNAME -s $1 -d NRF52840_XXAA &
+cd tracing
+
+java -jar client.jar -n $HOSTNAME -s $1 -d NRF52840_XXAA &
