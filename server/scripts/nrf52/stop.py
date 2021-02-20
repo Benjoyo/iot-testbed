@@ -31,6 +31,8 @@ if __name__=="__main__":
   # pssh(hosts_path, 'if pgrep screen; then screen -X -S nrf52screen quit; fi', "Quitting screen")
   
   pssh(hosts_path, "if pgrep java; then killall -9 java; fi;", "Killing java")
+  pssh(hosts_path, "if pgrep orbuculum; then killall -9 orbuculum; fi;", "Killing orbuculum")
+  pssh(hosts_path, "if pgrep JLinkGDBServerC; then killall -9 JLinkGDBServerC; fi;", "Killing JLinkGDBServer")
   os.system("if pgrep java; then killall -9 java; fi;")
 
   # Program the nodes with null firmware

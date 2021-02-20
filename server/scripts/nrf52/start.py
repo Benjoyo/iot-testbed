@@ -50,27 +50,19 @@ if __name__=="__main__":
 
   hosts_path = os.path.join(job_dir, "hosts")
 
-  # Look for the elf file (only required for tracing)
-  elf_path = None
+  # Look for the trace config file and trace server jar (only required for tracing)
+  trace_server_path = None
   if os.path.isdir(job_dir):
-   for f in os.listdir(job_dir):
-    if f.endswith(".elf"):
-      elf_path = os.path.join(job_dir, f)
-      break
-
-  # Look for the trace config file (only required for tracing)
-  trace_config_path = None
-  if os.path.isdir(job_dir):
-    p = os.path.join(job_dir, "trace_config.json")
+    p = os.path.join(job_dir, "server.jar")
     if os.path.isfile(p):
-      trace_config_path = p
+      trace_server_path = p
 
   # Start tracing observers and server if tracing config exists
-  if trace_config_path:
+  if trace_server_path:
     # start server in background
-    subprocess.Popen(["java", "-jar", "/usr/testbed/tracing/server.jar"], cwd=job_dir, close_fds=True)
+    subprocess.Popen(["java", "-jar", trace_server_path], cwd=job_dir, close_fds=True)
     # start observers
-    if pssh(hosts_path, "%s %s"%(os.path.join(REMOTE_SCRIPTS_PATH, "trace.sh"), get_ip()), "Start tracing observers") != 0:
+    if pssh(hosts_path, "%s %s %s"%(os.path.join(REMOTE_SCRIPTS_PATH, "trace.sh"), get_ip(), 20), "Start tracing observers") != 0:
       sys.exit(6)
 
   # Copy firmware to the nodes

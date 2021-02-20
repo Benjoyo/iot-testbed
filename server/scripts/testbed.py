@@ -45,8 +45,7 @@ is_nested = False
 force_reboot = False
 forward_serial = False
 
-trace_config = None
-elf = None
+trace = None
 
 MAX_START_ATTEMPTS = 3
 TESTBED_PATH = "/usr/testbed/server"
@@ -403,24 +402,14 @@ def create(name, platform, hosts, copy_from, do_start, duration, metadata, post_
         # create duration file in job directory
         file_write(os.path.join(job_dir, "duration"), duration + "\n")
 
-    # copy trace config file, if any
-    if trace_config:
-        dest = os.path.join(
-            job_dir, os.path.basename(trace_config))
+    # copy trace dir, if any
+    if os.path.isdir(trace):
+        # copy full directory
         try:
-            shutil.copyfile(trace_config, dest)
+            shutil.copytree(trace, job_dir, dirs_exist_ok=True)
         except Exception as e:
-            print("Failed to copy trace_config to %s" % dest)
-            print(e)
-            do_quit(1)
-    # copy elf file, if any
-    if elf:
-        dest = os.path.join(
-            job_dir, os.path.basename(elf))
-        try:
-            shutil.copyfile(elf, dest)
-        except Exception as e:
-            print("Failed to copy elf file to %s" % dest)
+            print("Could not copy directory %s to %s" %
+                  (trace, job_dir))
             print(e)
             do_quit(1)
 
@@ -807,7 +796,7 @@ if __name__ == "__main__":
         # Try to fettch arguments
         try:
             opts, args = getopt.getopt(sys.argv[2:], "", ["name=", "platform=", "hosts=", "copy-from=", "duration=", "job-id=", "start",
-                                                          "force", "no-download", "start-next", "metadata=", "trace=", "elf=", "post-processing=", "nested", "with-reboot", "forward-serial"])
+                                                          "force", "no-download", "start-next", "metadata=", "trace=", "post-processing=", "nested", "with-reboot", "forward-serial"])
         except getopt.GetoptError as e:
             print(e)
             usage()
@@ -832,12 +821,8 @@ if __name__ == "__main__":
                     sys.exit(1)
             elif opt == "--duration":
                 duration = value
-
             elif opt == "--trace":
-                trace_config = value
-            elif opt == "--elf":
-                elf = value
-
+                trace = value
             elif opt == "--start":
                 do_start = True
             elif opt == "--force":
