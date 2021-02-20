@@ -50,6 +50,14 @@ if __name__=="__main__":
 
   hosts_path = os.path.join(job_dir, "hosts")
 
+  # Copy firmware to the nodes
+  if pscp(hosts_path, firmware_path, REMOTE_FIRMWARE_PATH, "Copying nrf52 firmware to the PI nodes") != 0:
+    sys.exit(3)
+  # Program the nodes
+  if pssh(hosts_path, "%s %s"%(os.path.join(REMOTE_JN_SCRIPTS_PATH, "install.sh"), REMOTE_FIRMWARE_PATH), "Installing nrf52 firmware") != 0:
+    sys.exit(4)
+
+
   # Look for the trace config file and trace server jar (only required for tracing)
   trace_server_path = None
   if os.path.isdir(job_dir):
@@ -60,17 +68,12 @@ if __name__=="__main__":
   # Start tracing observers and server if tracing config exists
   if trace_server_path:
     # start server in background
-    subprocess.Popen(["java", "-jar", trace_server_path], cwd=job_dir, close_fds=True)
+    subprocess.Popen(["java", "-jar", trace_server_path, "-s", "mqtt", "-i", "resolve", "assert", "print", "-o", "null"], cwd=job_dir, close_fds=True)
     # start observers
-    if pssh(hosts_path, "%s %s %s"%(os.path.join(REMOTE_SCRIPTS_PATH, "trace.sh"), get_ip(), 20), "Start tracing observers") != 0:
+    if pssh(hosts_path, "%s %s %d"%(os.path.join(REMOTE_SCRIPTS_PATH, "trace.sh"), get_ip(), 20), "Start trace observers") != 0:
       sys.exit(6)
 
-  # Copy firmware to the nodes
-  if pscp(hosts_path, firmware_path, REMOTE_FIRMWARE_PATH, "Copying nrf52 firmware to the PI nodes") != 0:
-    sys.exit(3)
-  # Program the nodes
-  if pssh(hosts_path, "%s %s"%(os.path.join(REMOTE_JN_SCRIPTS_PATH, "install.sh"), REMOTE_FIRMWARE_PATH), "Installing nrf52 firmware") != 0:
-    sys.exit(4)
+
   # Start serialdump
   remote_log_dir = os.path.join(REMOTE_LOGS_PATH, os.path.basename(job_dir), "log.txt")
   if pssh(hosts_path, "%s %s"%(os.path.join(REMOTE_JN_SCRIPTS_PATH, "serialdump.sh"), remote_log_dir), "Starting serialdump") != 0:
